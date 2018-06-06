@@ -5,12 +5,14 @@
 //=============================================================================
 #include <Windows.h>
 #include "render_system.h"
+#include "main.h"
+#include "game_timer.h"
 
 //*****************************************************************************
 // 定数定義
 //*****************************************************************************
 #define CLASS_NAME		L"AppClass"			// ウインドウのクラス名
-#define WINDOW_NAME		L"ポリゴンの描画"	// ウインドウのキャプション名
+#define WINDOW_NAME		L"DirectX12"	// ウインドウのキャプション名
 #define SCREEN_WIDTH    1280
 #define SCREEN_HEIGHT   720
 
@@ -21,7 +23,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 bool Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow);
 void Uninit(void);
 void Update(void);
-void Draw(void);
 
 //*****************************************************************************
 // グローバル変数
@@ -97,13 +98,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 DispatchMessage(&msg);
             }
         }
-        else
+        else if (GameTimer::Instance().CanUpdateFrame())
         {// DirectXの処理
          // 更新処理
             Update();
 
             // 描画処理
-            Draw();
+            Render();
         }
     }
 
@@ -169,6 +170,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 //=============================================================================
 bool Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 {
+    GameTimer::Create();
     g_render_system = new RenderSystem();
     g_render_system->Init(hWnd, SCREEN_WIDTH, SCREEN_HEIGHT);
     return true;
@@ -181,6 +183,7 @@ void Uninit(void)
 {
     g_render_system->Uninit();
     g_render_system.Reset();
+    GameTimer::Release();
 }
 
 //=============================================================================
@@ -194,7 +197,20 @@ void Update(void)
 //=============================================================================
 // 描画処理
 //=============================================================================
-void Draw(void)
+void Render(void)
 {
-    g_render_system->Draw();
+    g_render_system->Render();
+}
+
+RenderSystem* GetRenderSystem()
+{
+    return g_render_system.Get();
+}
+
+void ThrowIfFailed(HRESULT hr)
+{
+    if (FAILED(hr))
+    {
+        int error = 0;
+    }
 }
