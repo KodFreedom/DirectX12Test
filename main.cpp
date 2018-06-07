@@ -3,7 +3,7 @@
 // ポリゴン描画処理 [main.cpp]
 //
 //=============================================================================
-#include <Windows.h>
+#include <WindowsX.h>
 #include "render_system.h"
 #include "main.h"
 #include "game_timer.h"
@@ -23,11 +23,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 bool Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow);
 void Uninit(void);
 void Update(void);
+void Render(void);
 
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
-ComPtr<RenderSystem> g_render_system;
+RenderSystem* g_render_system;
+bool g_paused = false;
+bool g_resizing = false;
 
 //=============================================================================
 // メイン関数
@@ -99,12 +102,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
         }
         else if (GameTimer::Instance().CanUpdateFrame())
-        {// DirectXの処理
-         // 更新処理
-            Update();
+        {
+            if (!g_paused)
+            {
+                Update();
 
-            // 描画処理
-            Render();
+                Render();
+            }
         }
     }
 
@@ -154,7 +158,126 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return 0;
         }
         break;
+    case WM_ACTIVATE:
+        if (LOWORD(wParam) == WA_INACTIVE)
+        {
+            g_paused = true;
+            GameTimer::Instance().SetTimeScale(0.0f);
+        }
+        else
+        {
+            g_paused = false;
+            GameTimer::Instance().SetTimeScale(1.0f);
+        }
+        break;
 
+    // WM_SIZE is sent when the user resizes the window.  
+    case WM_SIZE:
+    {
+        // Save the new client area dimensions.
+        UINT width = LOWORD(lParam);
+        UINT height = HIWORD(lParam);
+        bool minimized = false;
+        bool maximized = false;
+
+        if (g_render_system)
+        {
+            if (wParam == SIZE_MINIMIZED)
+            {
+                g_paused = true;
+                minimized = true;
+                maximized = false;
+            }
+            else if (wParam == SIZE_MAXIMIZED)
+            {
+                g_paused = false;
+                minimized = false;
+                maximized = true;
+                g_render_system->OnResize(width, height);
+            }
+            else if (wParam == SIZE_RESTORED)
+            {
+
+                // Restoring from minimized state?
+                if (minimized)
+                {
+                    g_paused = false;
+                    minimized = false;
+                    g_render_system->OnResize(width, height);
+                }
+
+                // Restoring from maximized state?
+                else if (maximized)
+                {
+                    g_paused = false;
+                    maximized = false;
+                    g_render_system->OnResize(width, height);
+                }
+                else if (g_resizing)
+                {
+                    // If user is dragging the resize bars, we do not resize 
+                    // the buffers here because as the user continuously 
+                    // drags the resize bars, a stream of WM_SIZE messages are
+                    // sent to the window, and it would be pointless (and slow)
+                    // to resize for each WM_SIZE message received from dragging
+                    // the resize bars.  So instead, we reset after the user is 
+                    // done resizing the window and releases the resize bars, which 
+                    // sends a WM_EXITSIZEMOVE message.
+                }
+                else // API call such as SetWindowPos or mSwapChain->SetFullscreenState.
+                {
+                    g_render_system->OnResize(width, height);
+                }
+            }
+        }
+        return 0;
+    }
+
+        // WM_EXITSIZEMOVE is sent when the user grabs the resize bars.
+    case WM_ENTERSIZEMOVE:
+        g_paused = true;
+        g_resizing = true;
+        GameTimer::Instance().SetTimeScale(0.0f);
+        return 0;
+
+        // WM_EXITSIZEMOVE is sent when the user releases the resize bars.
+        // Here we reset everything based on the new window dimensions.
+    case WM_EXITSIZEMOVE:
+    {
+        UINT width = LOWORD(lParam);
+        UINT height = HIWORD(lParam);
+        g_paused = false;
+        g_resizing = false;
+        GameTimer::Instance().SetTimeScale(1.0f);
+        g_render_system->OnResize(width, height);
+        return 0;
+    }
+
+        // The WM_MENUCHAR message is sent when a menu is active and the user presses 
+        // a key that does not correspond to any mnemonic or accelerator key. 
+    case WM_MENUCHAR:
+        // Don't beep when we alt-enter.
+        return MAKELRESULT(0, MNC_CLOSE);
+
+        // Catch this message so to prevent the window from becoming too small.
+    case WM_GETMINMAXINFO:
+        ((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
+        ((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
+        return 0;
+
+    case WM_LBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+        g_render_system->OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_LBUTTONUP:
+    case WM_MBUTTONUP:
+    case WM_RBUTTONUP:
+        g_render_system->OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
+    case WM_MOUSEMOVE:
+        g_render_system->OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+        return 0;
     default:
         break;
     }
@@ -170,7 +293,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 //=============================================================================
 bool Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 {
-    GameTimer::Create();
+    GameTimer::Create(hWnd);
     g_render_system = new RenderSystem();
     g_render_system->Init(hWnd, SCREEN_WIDTH, SCREEN_HEIGHT);
     return true;
@@ -182,7 +305,8 @@ bool Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 void Uninit(void)
 {
     g_render_system->Uninit();
-    g_render_system.Reset();
+    delete g_render_system;
+    g_render_system = nullptr;
     GameTimer::Release();
 }
 
@@ -204,13 +328,5 @@ void Render(void)
 
 RenderSystem* GetRenderSystem()
 {
-    return g_render_system.Get();
-}
-
-void ThrowIfFailed(HRESULT hr)
-{
-    if (FAILED(hr))
-    {
-        int error = 0;
-    }
+    return g_render_system;
 }
