@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ヘッダー ファイル\Library">
+      <UniqueIdentifier>{eef7dad6-ef63-42cc-9dc5-b17aa1a1becf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\Library">
+      <UniqueIdentifier>{fe240023-ffac-457f-bf7d-985b93668763}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -24,16 +30,40 @@
     <ClCompile Include="render_system.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="game_system.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Books\DirectX12\d3d12book-master\d3d12book-master\Common\d3dUtil.cpp">
+      <Filter>ソース ファイル\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="DDSTextureLoader.cpp">
+      <Filter>ソース ファイル\Library</Filter>
+    </ClCompile>
+    <ClCompile Include="MathHelper.cpp">
+      <Filter>ソース ファイル\Library</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="render_system.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="game_timer.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="game_system.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Books\DirectX12\d3d12book-master\d3d12book-master\Common\d3dUtil.h">
+      <Filter>ヘッダー ファイル\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>ヘッダー ファイル\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="MathHelper.h">
+      <Filter>ヘッダー ファイル\Library</Filter>
+    </ClInclude>
+    <ClInclude Include="DDSTextureLoader.h">
+      <Filter>ヘッダー ファイル\Library</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

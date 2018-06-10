@@ -12,21 +12,9 @@ class GameTimer
 {
 public:
     //--------------------------------------------------------------------------------
-    //  定数定義
+    //  Create
     //--------------------------------------------------------------------------------
-    static constexpr float kFramePerSecond = 60.0f; // FPS
-    static constexpr float kTimeInterval = 1.0f / kFramePerSecond; // 更新間隔
-
-    //--------------------------------------------------------------------------------
-    //  instance生成処理
-    //  return：Time*
-    //--------------------------------------------------------------------------------
-    static GameTimer* Create(HWND hwnd);
-
-    //--------------------------------------------------------------------------------
-    //  破棄処理
-    //--------------------------------------------------------------------------------
-    static void Release();
+    static GameTimer* Create();
 
     //--------------------------------------------------------------------------------
     //  インスタンスを返す
@@ -35,6 +23,16 @@ public:
     {
         return *instance_;
     }
+
+    //--------------------------------------------------------------------------------
+    //  Initialize処理
+    //--------------------------------------------------------------------------------
+    void Initialize(HWND main_window_handle);
+
+    //--------------------------------------------------------------------------------
+    //  破棄処理
+    //--------------------------------------------------------------------------------
+    void Release();
 
     //--------------------------------------------------------------------------------
     //  Delta timeの取得
@@ -57,6 +55,11 @@ public:
     float ScaledDeltaTime() const { return scaled_delta_time_; }
 
     //--------------------------------------------------------------------------------
+    //  fps制限の設定（0 : リミットがない）
+    //--------------------------------------------------------------------------------
+    void SetFpsLimit(const UINT fps_limit);
+
+    //--------------------------------------------------------------------------------
     //  タイム走る
     //--------------------------------------------------------------------------------
     void Tick();
@@ -68,20 +71,17 @@ public:
 
 private:
     //--------------------------------------------------------------------------------
-    //  constructors for singleton / シングルトンのコンストラクタ
+    //  constructors
     //--------------------------------------------------------------------------------
-    GameTimer()
-    {
-        memset(&frequency_, 0x00, sizeof frequency_);
-        memset(&current_time_, 0x00, sizeof current_time_);
-        memset(&exec_last_time_, 0x00, sizeof exec_last_time_);
-        memset(&fps_last_time_, 0x00, sizeof fps_last_time_);
-        QueryPerformanceCounter(&exec_last_time_);
-        fps_last_time_ = exec_last_time_;
-    }
-    GameTimer(const GameTimer& value) {}
-    GameTimer& operator=(const GameTimer& value) {}
-    ~GameTimer() {}
+    GameTimer();
+    ~GameTimer();
+    GameTimer(const GameTimer& rhs) = delete;
+    GameTimer& operator=(const GameTimer& rhs) = delete;
+
+    //--------------------------------------------------------------------------------
+    //  Fps表示処理
+    //--------------------------------------------------------------------------------
+    void DisplayFps();
 
     //--------------------------------------------------------------------------------
     //  変数定義
@@ -93,6 +93,10 @@ private:
     float delta_time_ = 0.0f;
     float time_scale_ = 0.0f;
     float scaled_delta_time_ = 0.0f;
-    HWND  hwnd_ = nullptr;
+    float time_interval_ = 0.0f; // 更新間隔
+    UINT  fps_limit_ = 0;
+    bool  display_fps_ = true;
+    HWND  main_window_handle_ = nullptr;
+
     static GameTimer* instance_; // インスタンス
 };

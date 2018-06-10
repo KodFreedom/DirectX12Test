@@ -122,13 +122,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Books\DirectX12\d3d12book-master\d3d12book-master\Common\d3dUtil.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
+    <ClCompile Include="game_system.cpp" />
     <ClCompile Include="game_timer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="render_system.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Books\DirectX12\d3d12book-master\d3d12book-master\Common\d3dUtil.h" />
     <ClInclude Include="d3dx12.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
+    <ClInclude Include="game_system.h" />
     <ClInclude Include="game_timer.h" />
+    <ClInclude Include="MathHelper.h" />
     <ClInclude Include="render_system.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
